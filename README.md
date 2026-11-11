@@ -1,211 +1,212 @@
 # HireLens
 
-> **AI-powered career preparation workspace** for turning a resume and target job description into focused interview preparation.
+<p align="center">
+  <img src="https://img.shields.io/badge/HireLens-AI%20Career%20Preparation-ccff4d?style=for-the-badge&labelColor=101418" alt="HireLens" />
+  <img src="https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Gemini-Generative%20AI-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
+</p>
 
-HireLens is a full-stack JavaScript application that combines resume context, job requirements, and Generative AI to help candidates prepare for technical interviews. The product is designed around one principle:
+<p align="center">
+  <strong>Turn preparation into your unfair advantage.</strong><br />
+  A full-stack, resume-aware AI workspace for role-specific interview preparation.
+</p>
 
-> Preparation should be specific to the candidate and the role, not generic advice.
-
-The application currently includes:
-
-- A premium React/Vite frontend
-- An Express/MongoDB backend
-- Registration and login with bcrypt and JWT cookies
-- Protected user sessions
-- PDF resume upload and text extraction
-- Gemini-powered interview report generation
-- Match score, skill gaps, technical questions, behavioral questions, and preparation plans
-- MongoDB persistence for generated reports
-- AI-generated ATS-oriented resume HTML converted to PDF with Puppeteer
-
----
-
-## Table of Contents
-
-1. [Product Overview](#product-overview)
-2. [Current Implementation Status](#current-implementation-status)
-3. [Technology Stack](#technology-stack)
-4. [Repository Structure](#repository-structure)
-5. [System Architecture](#system-architecture)
-6. [Request Lifecycle](#request-lifecycle)
-7. [Authentication Architecture](#authentication-architecture)
-8. [AI Architecture](#ai-architecture)
-9. [Resume Analysis Workflow](#resume-analysis-workflow)
-10. [Database Design](#database-design)
-11. [API Reference](#api-reference)
-12. [Environment Configuration](#environment-configuration)
-13. [Local Development](#local-development)
-14. [Frontend Architecture](#frontend-architecture)
-15. [Error Handling](#error-handling)
-16. [Security Design](#security-design)
-17. [Production Readiness](#production-readiness)
-18. [Scaling Strategy](#scaling-strategy)
-19. [Testing Strategy](#testing-strategy)
-20. [Troubleshooting](#troubleshooting)
-21. [System Design Interview Questions](#system-design-interview-questions)
-22. [Technical Interview Questions](#technical-interview-questions)
-23. [Project Defense Guide](#project-defense-guide)
-24. [Future Roadmap](#future-roadmap)
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#architecture-at-a-glance">Architecture</a> ·
+  <a href="#api-reference">API reference</a> ·
+  <a href="#interview-defense-guide">Interview guide</a>
+</p>
 
 ---
 
-## Product Overview
+## Table of contents
 
-HireLens supports this high-level workflow:
+- [What is HireLens?](#what-is-hirelens)
+- [Why this project is technically interesting](#why-this-project-is-technically-interesting)
+- [Feature matrix and implementation truth](#feature-matrix-and-implementation-truth)
+- [Technology stack](#technology-stack)
+- [Repository structure](#repository-structure)
+- [Architecture at a glance](#architecture-at-a-glance)
+- [Core request lifecycles](#core-request-lifecycles)
+- [Authentication and authorization](#authentication-and-authorization)
+- [AI pipeline and prompt contract](#ai-pipeline-and-prompt-contract)
+- [Resume processing and PDF generation](#resume-processing-and-pdf-generation)
+- [Data model and persistence](#data-model-and-persistence)
+- [API reference](#api-reference)
+- [Environment configuration](#environment-configuration)
+- [Quick start](#quick-start)
+- [Frontend architecture](#frontend-architecture)
+- [Design system](#design-system)
+- [Error handling and observability](#error-handling-and-observability)
+- [Security model](#security-model)
+- [Performance and scalability](#performance-and-scalability)
+- [Testing and verification](#testing-and-verification)
+- [Troubleshooting](#troubleshooting)
+- [System design interview guide](#system-design-interview-guide)
+- [Technical interview questions](#technical-interview-questions)
+- [Interview defense guide](#interview-defense-guide)
+- [Roadmap](#roadmap)
+
+---
+
+## What is HireLens?
+
+HireLens is a MERN-style career preparation platform that combines:
+
+1. A candidate's resume context.
+2. A target job description.
+3. Optional candidate goals or self-description.
+4. A structured Generative AI analysis.
+
+The result is a persistent preparation report containing:
+
+- A bounded role-match score.
+- Technical questions with intent and model answers.
+- Behavioral questions with intent and model answers.
+- Skill gaps classified by severity.
+- A day-wise preparation plan.
+
+The product principle is simple:
+
+> **The candidate and the role are the source of truth; the model is the reasoning layer.**
+
+HireLens deliberately does not claim that an AI score guarantees an interview or bypasses an ATS. It is a preparation and feedback tool, not a hiring decision engine.
+
+### Product workflow
 
 ```text
-User creates an account
-        |
-        v
-User uploads a PDF resume and enters a target job description
-        |
-        v
-Backend extracts resume text
-        |
-        v
-Gemini analyzes candidate context against the target role
-        |
-        v
-Structured report is validated and persisted in MongoDB
-        |
-        v
-Frontend displays match score, gaps, questions, and preparation plan
-        |
-        v
-User can request an AI-tailored resume PDF
+Create account
+    ↓
+Authenticate with an HTTP-only JWT cookie
+    ↓
+Upload a PDF resume and enter the target role
+    ↓
+Extract readable resume text in the backend
+    ↓
+Send resume + role + optional context to Gemini
+    ↓
+Parse a schema-constrained JSON report
+    ↓
+Persist the report against the authenticated user
+    ↓
+Render match signal, gaps, questions and preparation plan
+    ↓
+Generate an ATS-oriented PDF when requested
 ```
 
-### Product goals
+---
 
-- Replace generic interview preparation with role-specific preparation.
-- Give candidates a clear explanation of what to improve.
-- Keep the candidate's resume and target role at the center of every recommendation.
-- Provide an actionable plan rather than only a score.
-- Keep the codebase understandable enough to explain in a technical interview.
+## Why this project is technically interesting
 
-### What HireLens is not
+HireLens is small enough to understand end-to-end but rich enough to discuss real engineering trade-offs:
 
-- It is not a guaranteed hiring or ATS-bypass system.
-- It does not replace human review of resume content.
-- It does not invent experience intentionally; prompts instruct Gemini to identify gaps instead.
-- It does not currently provide live voice interviews or answer scoring.
+- **Authentication:** password hashing, JWT signing, cookies, CORS and protected routes.
+- **Document ingestion:** multipart upload, MIME validation, memory limits and PDF parsing.
+- **AI reliability:** structured output, prompt boundaries, model availability and provider errors.
+- **Data modeling:** nested report data and user ownership constraints.
+- **Document generation:** AI-generated HTML rendered to a PDF using a headless browser.
+- **Frontend state:** loading, empty, error, success and navigation states.
+- **System design:** synchronous MVP versus queues, object storage, caching and rate limiting.
+
+This repository is also designed to be defendable in an interview: every major feature can be traced from browser event to controller, service, database write and response.
 
 ---
 
-## Current Implementation Status
+## Feature matrix and implementation truth
 
-| Capability | Status | Notes |
+| Capability | Status | Current implementation |
 |---|---:|---|
-| React landing page | Implemented | Premium dark-first responsive UI |
-| Registration | Implemented | bcrypt password hashing and JWT cookie |
-| Login | Implemented | JWT stored in an HTTP-only cookie |
-| Logout | Implemented | Clears the authentication cookie |
-| Current-user endpoint | Implemented | Protected `/api/auth/me` |
-| Protected frontend routes | Implemented | Redirects unauthenticated users |
-| PDF resume upload | Implemented | Memory storage, 3 MB limit |
-| PDF text extraction | Implemented | `pdf-parse` |
-| Gemini interview report | Implemented | Requires `GOOGLE_GENAI_API_KEY` |
-| Match score | Implemented | Generated by Gemini and bounded to 0–100 |
-| Skill-gap analysis | Implemented | Stored in the interview report |
-| Technical questions | Implemented | Generated with intention and model answer |
-| Behavioral questions | Implemented | Generated with intention and model answer |
-| Preparation plan | Implemented | Day-wise plan persisted in MongoDB |
-| ATS resume optimization | Partially implemented | AI generates ATS-oriented HTML |
-| Resume PDF export | Implemented | Puppeteer converts generated HTML to PDF |
-| DOCX upload | Not implemented | Current backend accepts PDF only |
-| Live interview answer feedback | Not implemented | Planned feature |
-| Dedicated ATS algorithm | Not implemented | Current ATS behavior is prompt-based |
-| Automated test suite | Minimal | Syntax/build/smoke checks exist; broader tests are planned |
-| Production deployment | Not configured | Requires deployment-specific environment and Chromium setup |
+| Premium landing page | ✅ | React/Vite dark-first responsive interface |
+| Registration | ✅ | Input checks, bcrypt hashing, JWT cookie |
+| Login/logout | ✅ | Cookie-based session lifecycle |
+| Current-user session | ✅ | Protected `/api/auth/me` |
+| PDF resume upload | ✅ | Multer memory storage, PDF MIME check, 3 MB limit |
+| PDF text extraction | ✅ | `pdf-parse` |
+| Gemini report generation | ✅ | `@google/genai`, schema-shaped JSON response |
+| Match score | ✅ | AI-generated and clamped to 0–100 |
+| Skill-gap analysis | ✅ | Nested report data with low/medium/high severity |
+| Technical questions | ✅ | Question, intention and answer |
+| Behavioral questions | ✅ | Question, intention and answer |
+| Preparation plan | ✅ | Day, focus and tasks |
+| Report persistence | ✅ | MongoDB with authenticated user ownership |
+| AI resume HTML | ✅ | Generated by Gemini for PDF rendering |
+| Resume PDF export | ✅ | Puppeteer |
+| DOCX upload | ❌ | PDF only in the current implementation |
+| Dedicated deterministic ATS engine | ❌ | Current optimization is AI/prompt based |
+| Live conversational interview | ❌ | Planned |
+| Streaming AI output | ❌ | Current API waits for a complete report |
+| Background job queue | ❌ | Synchronous MVP workflow |
+| Automated integration test suite | ⚠️ | Syntax, build and smoke checks; expansion planned |
+
+Honest status is a feature: documentation should describe what exists, not what a roadmap promises.
 
 ---
 
-## Technology Stack
+## Technology stack
 
 ### Frontend
 
-| Technology | Purpose |
+| Technology | Why it is used |
 |---|---|
-| React | Component-based UI |
-| Vite | Development server and production bundling |
-| React Router | Client-side routing |
-| Axios | HTTP requests with cookie credentials |
-| CSS | Design system, responsive layout, dark SaaS theme |
+| React 19 | Component-based UI and local state |
+| Vite 6 | Fast development server and Node 20 compatibility |
+| React Router | Client-side route composition |
+| Axios | API client with `withCredentials: true` |
+| CSS | Custom design tokens and responsive premium UI |
 
 ### Backend
 
-| Technology | Purpose |
+| Technology | Why it is used |
 |---|---|
 | Node.js | JavaScript runtime |
-| Express | HTTP server and API routing |
-| Mongoose | MongoDB schema and persistence layer |
-| MongoDB Atlas/local MongoDB | Application database |
-| bcryptjs | Password hashing and verification |
-| jsonwebtoken | Session token generation and verification |
-| cookie-parser | Reading authentication cookies |
-| cors | Frontend/backend cross-origin configuration |
-| Multer | Multipart file upload handling |
-| pdf-parse | PDF-to-text conversion |
-| `@google/genai` | Gemini API client |
+| Express 5 | HTTP server, middleware and routing |
+| Mongoose | MongoDB schemas, validation and queries |
+| MongoDB | Persistent users and interview reports |
+| bcryptjs | One-way password hashing |
+| jsonwebtoken | Signed stateless session tokens |
+| cookie-parser | Reading cookies from requests |
+| cors | Controlled frontend/backend origin access |
+| Multer | Multipart PDF upload handling |
+| pdf-parse | PDF text extraction |
+| `@google/genai` | Gemini API integration |
 | Puppeteer | HTML-to-PDF rendering |
-| dotenv | Environment configuration |
+| dotenv | Local environment loading |
 
-### Why these choices?
+### Current AI model
 
-#### Why React?
+The local configuration uses:
 
-The application has several stateful surfaces: authentication, file selection, report loading, progress states, errors, and navigation. React provides component composition and predictable UI updates.
+```env
+GEMINI_MODEL=gemini-flash-lite-latest
+```
 
-#### Why Express?
-
-Express is intentionally small and explicit. Routes, middleware, controllers, and services can be separated without introducing framework-specific abstractions that obscure the request lifecycle.
-
-#### Why MongoDB?
-
-Interview reports have nested, variable-length arrays:
-
-- Technical questions
-- Behavioral questions
-- Skill gaps
-- Preparation-plan tasks
-
-MongoDB documents map naturally to this structure, and Mongoose provides validation and references.
-
-#### Why JWT in an HTTP-only cookie?
-
-The token is not readable by normal browser JavaScript, which reduces the impact of many token-stealing XSS scenarios compared with `localStorage`. The cookie is sent automatically to the API when Axios uses `withCredentials: true`.
-
-#### Why Gemini structured output?
-
-The UI needs predictable fields, not free-form prose. The Gemini request includes a JSON response schema so the backend can persist and render a consistent report shape.
-
-#### Why Puppeteer?
-
-The AI can generate semantic HTML, while Puppeteer gives control over page size, margins, typography, and PDF output. This separates content generation from document rendering.
+The model is configurable through the environment rather than hard-coded into a deployment. Model availability and quotas can change by account, region and date; always verify the configured model with the provider before deployment.
 
 ---
 
-## Repository Structure
+## Repository structure
 
 ```text
 HireLens/
-├── server.js
-├── package.json
+├── server.js                         # Environment validation, DB startup, HTTP listener
+├── package.json                      # Backend scripts and dependencies
 ├── package-lock.json
-├── .env
-├── .env.example
-├── .gitignore
+├── .env.example                      # Safe configuration template
+├── .gitignore                        # Keeps .env and dependencies private
 ├── README.md
 ├── src/
-│   ├── app.js
+│   ├── app.js                        # Express composition and middleware order
 │   ├── config/
-│   │   └── database.js
+│   │   └── database.js               # Mongoose connection
 │   ├── controllers/
-│   │   ├── auth.controllers.js
-│   │   └── interview.controllers.js
+│   │   ├── auth.controllers.js       # Register, login, logout, current user
+│   │   └── interview.controllers.js  # Upload, AI report, retrieval, PDF
 │   ├── middlewares/
-│   │   ├── auth.middleware.js
-│   │   └── file.middleware.js
+│   │   ├── auth.middleware.js        # JWT cookie verification
+│   │   └── file.middleware.js        # PDF upload policy
 │   ├── models/
 │   │   ├── user.model.js
 │   │   └── interviewReport.model.js
@@ -213,383 +214,385 @@ HireLens/
 │   │   ├── auth.routes.js
 │   │   └── interview.routes.js
 │   └── services/
-│       └── ai.service.js
+│       └── ai.service.js             # Gemini and Puppeteer integration
 └── frontend/
     ├── index.html
     ├── package.json
-    ├── package-lock.json
-    ├── .gitignore
     └── src/
-        ├── main.jsx
-        └── styles.css
+        ├── main.jsx                  # Routes, pages, API integration
+        └── styles.css                # Design system and responsive UI
 ```
 
-### Backend responsibilities
+### Backend layering
 
-- `server.js`: loads environment variables, connects to MongoDB, starts HTTP server.
-- `src/app.js`: creates the Express application and registers global middleware/routes.
-- `controllers/`: translates HTTP requests into application operations and HTTP responses.
-- `middlewares/`: authentication and file-upload concerns.
-- `models/`: MongoDB document schemas.
-- `routes/`: endpoint-to-controller mapping.
-- `services/`: integrations with Gemini and Puppeteer.
+```text
+Route
+  → Middleware
+    → Controller
+      → Model / Service
+        → External system or database
+```
 
-### Frontend responsibilities
-
-- `main.jsx`: React application, routes, reusable UI components, API calls, page state.
-- `styles.css`: design tokens, responsive layout, forms, cards, navigation, states.
-
-The current frontend is intentionally kept compact while the backend is modular. As more features are added, the frontend should be split into `features/auth`, `features/interview`, and `components` directories.
+Controllers own HTTP concerns. Services own external integrations. Models own persistence shape. This avoids placing Gemini calls, database queries and response formatting in one route file.
 
 ---
 
-## System Architecture
+## Architecture at a glance
 
-### High-level architecture
+### Logical architecture
 
 ```mermaid
 flowchart LR
-    Browser[React + Vite Browser App]
-    API[Express API]
-    Auth[Auth Middleware]
-    Controllers[Controllers]
-    Mongo[(MongoDB)]
-    PDF[PDF Parser]
-    Gemini[Google Gemini API]
-    Puppeteer[Puppeteer Chromium]
-
-    Browser -->|HTTP + JSON/cookies| API
-    API --> Auth
-    Auth --> Controllers
-    Controllers --> Mongo
-    Controllers --> PDF
-    Controllers --> Gemini
-    Controllers --> Puppeteer
+    Browser["React + Vite<br/>Browser"] -->|HTTP + credentials| API["Express API<br/>Node.js"]
+    API --> Auth["Auth middleware<br/>JWT cookie"]
+    API --> Controllers["Controllers"]
+    Controllers --> Mongo["MongoDB<br/>Users + Reports"]
+    Controllers --> PDF["pdf-parse<br/>Resume text"]
+    Controllers --> AI["AI service"]
+    AI --> Gemini["Gemini API<br/>Structured JSON"]
+    AI --> Chrome["Puppeteer<br/>HTML → PDF"]
+    Chrome --> Browser
+    Gemini --> Mongo
 ```
 
-### Layered backend architecture
+### Deployment topology
+
+```mermaid
+flowchart TB
+    User["Candidate browser"] --> CDN["Static frontend host / CDN"]
+    CDN --> React["React application"]
+    React --> API["API service"]
+    API --> DB[(MongoDB Atlas)]
+    API --> AI["Gemini API"]
+    API --> Storage["Object storage<br/>(future for resume files)"]
+    API --> Worker["Job worker<br/>(future for long AI/PDF jobs)"]
+```
+
+The current local MVP does not require the future storage or worker nodes. They are the natural production evolution for large files, long-running inference and retryable jobs.
+
+### Trust boundaries
 
 ```text
-┌──────────────────────────────────────────────────────────────┐
-│ HTTP Layer                                                   │
-│ Express routes, JSON parser, CORS, cookies, file uploads    │
-└──────────────────────────────┬───────────────────────────────┘
-                               v
-┌──────────────────────────────────────────────────────────────┐
-│ Security Layer                                               │
-│ JWT cookie extraction, token verification, ownership checks  │
-└──────────────────────────────┬───────────────────────────────┘
-                               v
-┌──────────────────────────────────────────────────────────────┐
-│ Controller Layer                                             │
-│ Validate request, call services/models, shape response       │
-└───────────────┬───────────────────────────────┬──────────────┘
-                v                               v
-┌──────────────────────────────┐   ┌──────────────────────────┐
-│ Integration Services          │   │ Persistence               │
-│ Gemini, PDF rendering         │   │ Mongoose models           │
-└──────────────┬───────────────┘   └──────────────┬───────────┘
-               v                                  v
-        External APIs                       MongoDB database
+Untrusted browser input
+        |
+        | validation, origin policy, upload limits
+        v
+Express API boundary
+        |
+        | authenticated user identity
+        v
+Database / AI provider / PDF renderer
 ```
 
-### Why separate controllers and services?
-
-Controllers understand HTTP:
-
-- `req.body`
-- `req.file`
-- status codes
-- response JSON
-
-Services understand integrations:
-
-- Gemini prompts and response schemas
-- Puppeteer browser lifecycle
-
-This separation makes it easier to replace Gemini, test prompt logic, or move long-running AI tasks to a queue later.
+The browser is never trusted to provide a user id. Ownership is derived from the verified JWT and applied to every report query.
 
 ---
 
-## Request Lifecycle
+## Core request lifecycles
 
-### Registration lifecycle
-
-```mermaid
-sequenceDiagram
-    participant B as Browser
-    participant E as Express
-    participant C as Auth Controller
-    participant M as Mongoose
-    participant DB as MongoDB
-
-    B->>E: POST /api/auth/register
-    E->>C: Parse JSON body
-    C->>C: Validate fields and password length
-    C->>M: Find by username/email
-    M->>DB: Query users collection
-    DB-->>M: Existing user or null
-    C->>C: bcrypt.hash(password)
-    C->>M: Create user document
-    M->>DB: Insert user
-    C->>C: jwt.sign(user id)
-    C-->>B: 201 JSON + HTTP-only token cookie
-```
-
-### Login lifecycle
-
-```text
-1. Browser submits email and password.
-2. Express parses JSON.
-3. Controller normalizes email.
-4. Mongoose finds the user.
-5. bcrypt.compare compares plain input with the stored hash.
-6. JWT is signed with the user id and username.
-7. Server sends `Set-Cookie: token=...; HttpOnly`.
-8. Browser stores the cookie.
-9. Future requests include the cookie automatically.
-```
-
-### Protected request lifecycle
+### Registration
 
 ```mermaid
 sequenceDiagram
     participant B as Browser
-    participant R as Route
-    participant A as authUser Middleware
+    participant R as Auth route
+    participant C as Auth controller
+    participant M as MongoDB
     participant J as JWT
-    participant C as Controller
-    participant DB as MongoDB
 
-    B->>R: GET /api/auth/me + cookie
-    R->>A: Run authentication middleware
-    A->>J: Verify token with JWT_SECRET
-    J-->>A: Decoded user id
-    A->>C: req.user = decoded
-    C->>DB: Find user by req.user.id
-    DB-->>C: User document
-    C-->>B: Public user JSON
+    B->>R: POST /api/auth/register
+    R->>C: username, email, password
+    C->>C: Validate and normalize input
+    C->>M: Find duplicate username/email
+    C->>C: bcrypt.hash(password, 12)
+    C->>M: Create user document
+    C->>J: Sign token
+    J-->>C: Signed token
+    C-->>B: 201 + HttpOnly token cookie
 ```
 
-### Interview report lifecycle
+### Login and protected request
 
 ```mermaid
 sequenceDiagram
     participant B as Browser
-    participant E as Express
-    participant U as Auth Middleware
-    participant F as Multer
-    participant C as Interview Controller
-    participant P as PDF Parser
+    participant A as Auth API
+    participant DB as MongoDB
+    participant P as Protected route
+    participant MW as authUser
+
+    B->>A: POST /api/auth/login
+    A->>DB: Find normalized email
+    A->>A: bcrypt.compare(password, hash)
+    A-->>B: Set-Cookie: token=JWT
+    B->>P: GET /api/auth/me with cookie
+    P->>MW: Verify token signature
+    MW->>P: Attach req.user
+    P->>DB: Find user by req.user.id
+    P-->>B: Current public user
+```
+
+### Resume-to-report flow
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant U as Upload middleware
+    participant C as Interview controller
+    participant P as pdf-parse
     participant G as Gemini
     participant DB as MongoDB
 
-    B->>E: POST /api/interview multipart/form-data
-    E->>U: Verify token
-    U-->>E: req.user
-    E->>F: Store PDF in memory
-    F-->>C: req.file.buffer
+    B->>U: multipart POST /api/interview
+    U->>U: Check PDF MIME and 3 MB limit
+    U->>C: file buffer + text fields
     C->>P: Extract resume text
-    P-->>C: Plain text
-    C->>G: Resume + self-description + job description
-    G-->>C: Structured JSON report
-    C->>DB: Save report with user id
-    DB-->>C: Saved report
-    C-->>B: 201 report JSON
+    C->>G: Resume + role + context + JSON schema
+    G-->>C: Structured report
+    C->>C: Clamp match score
+    C->>DB: Save report with req.user.id
+    DB-->>C: Persisted report
+    C-->>B: 201 report payload
+```
+
+### PDF export flow
+
+```text
+Authenticated request
+  → Load report using both report id and req.user.id
+  → Send report context to Gemini
+  → Receive safe HTML string
+  → Launch Puppeteer
+  → Set page content
+  → Render A4 PDF
+  → Close browser in finally
+  → Stream application/pdf response
 ```
 
 ---
 
-## Authentication Architecture
+## Authentication and authorization
 
-### Token contents
+### Authentication
 
-The JWT currently contains:
+Passwords are never stored directly. Registration performs:
 
-```json
+```js
+const hashedPassword = await bcrypt.hash(password, 12);
+```
+
+Login performs:
+
+```js
+await bcrypt.compare(plainTextPassword, storedHash);
+```
+
+After successful login, the server signs a JWT containing a minimal identity payload:
+
+```text
 {
-  "id": "MongoDB user id",
-  "username": "candidate username",
-  "iat": 0,
-  "exp": 0
+  id: user._id,
+  username: user.username
 }
 ```
 
-### Cookie configuration
+The JWT is placed in a cookie named `token`:
 
-The authentication cookie is configured as:
+| Cookie attribute | Development behavior |
+|---|---|
+| `httpOnly` | `true` |
+| `sameSite` | `lax` |
+| `secure` | `false` locally, `true` in production |
+| `maxAge` | 24 hours |
 
-- `httpOnly: true`
-- `sameSite: "lax"` in development
-- `secure: true` in production
-- `maxAge: 24 hours`
+### Authorization
 
-### Authentication vs authorization
+The `authUser` middleware:
 
-**Authentication** answers:
+1. Reads `req.cookies.token`.
+2. Rejects a missing cookie with `401`.
+3. Verifies the token using `JWT_SECRET`.
+4. Attaches the decoded user identity to `req.user`.
+5. Calls `next()` only when verification succeeds.
 
-> Who is this request from?
-
-The JWT middleware verifies the token and sets `req.user`.
-
-**Authorization** answers:
-
-> Is this authenticated user allowed to access this resource?
-
-Interview reports are queried using both the report id and authenticated user id:
+Every report lookup uses authenticated ownership:
 
 ```js
 {
-    _id: req.params.interviewId,
-    user: req.user.id
+  _id: req.params.interviewId,
+  user: req.user.id
 }
 ```
 
-This prevents one user from reading another user's report when they know or guess an id.
+This prevents an authenticated user from reading another user's report by changing an id in the URL.
 
-### Why not store JWT in localStorage?
+### Authentication versus authorization
 
-`localStorage` is accessible to JavaScript running on the page. If an XSS vulnerability occurs, malicious code can read a stored token and send it elsewhere. An HTTP-only cookie is not directly readable by page JavaScript.
+- **Authentication:** Who is this user? JWT verification answers this.
+- **Authorization:** Is this user allowed to access this resource? The `user` filter answers this.
 
-Cookies still require CSRF considerations. The current development configuration uses `SameSite=Lax`; production should also use a strict trusted-origin policy and, for cross-site deployments, CSRF protection.
+Having a valid JWT alone is not enough; the database query must still scope the resource to the authenticated user.
 
 ---
 
-## AI Architecture
+## AI pipeline and prompt contract
 
-### Input context
+### Inputs
 
-Gemini receives:
+The report request combines:
 
-1. Extracted resume text, if a PDF was uploaded.
-2. User's self-description, if provided.
-3. Target job description.
+- Extracted PDF resume text, when a file is provided.
+- `selfDescription`, optional candidate context.
+- `jobDescription`, required target-role context.
 
-### Structured output
+### Prompt contract
 
-The generated report contains:
+The service instructs Gemini to:
+
+- Act as a senior technical interview mentor.
+- Compare candidate context to the target role.
+- Return only valid JSON.
+- Follow the supplied response schema.
+- Avoid inventing candidate experience.
+- Identify gaps explicitly.
+
+### Response shape
 
 ```json
 {
-  "title": "Frontend Engineer",
-  "matchScore": 82,
+  "title": "Software Development Engineer preparation",
+  "matchScore": 78,
   "technicalQuestions": [
     {
-      "question": "How would you optimize a large React application?",
-      "intention": "Evaluate performance reasoning",
-      "answer": "Discuss profiling, memoization, code splitting..."
+      "question": "Explain how you would design...",
+      "intention": "Tests system design reasoning",
+      "answer": "A strong answer should..."
     }
   ],
-  "behavioralQuestions": [],
+  "behavioralQuestions": [
+    {
+      "question": "Tell me about a difficult trade-off...",
+      "intention": "Tests ownership and communication",
+      "answer": "Use a specific STAR example..."
+    }
+  ],
   "skillGaps": [
     {
-      "skill": "System design",
+      "skill": "Distributed systems",
       "severity": "medium"
     }
   ],
   "preparationPlan": [
     {
       "day": 1,
-      "focus": "React performance",
-      "tasks": ["Review profiling", "Solve one optimization exercise"]
+      "focus": "Role fundamentals",
+      "tasks": ["Review REST design", "Practice one system-design prompt"]
     }
   ]
 }
 ```
 
-### Prompt design principles
+### Why structured output matters
 
-- Explicitly request JSON.
-- Define the output schema.
-- Tell the model not to invent experience.
-- Tell the model to identify gaps.
-- Include all relevant context in one request.
-- Use a low temperature for consistency.
-- Bound the score to 0–100 before returning it.
+Without a schema, the model may return headings, Markdown, prose or missing fields. Structured output makes the contract explicit and reduces rendering ambiguity. The backend still parses the returned text and treats parse failure as an error; schema constraints are not a substitute for validation.
 
-### AI failure modes
+### AI reliability boundaries
 
-The service explicitly handles:
+The AI provider can:
 
-- Missing API key
-- Invalid Gemini JSON
-- Invalid report shape
-- Gemini service errors
-- Puppeteer launch/render errors
+- Rate-limit or temporarily return `503`.
+- Deprecate a model.
+- Return malformed content.
+- Produce a low-quality or incomplete analysis.
 
-AI output is not treated as trusted application code except for the resume HTML rendering path. That path needs additional sanitization and browser restrictions before production deployment.
+The application therefore:
 
----
-
-## Resume Analysis Workflow
-
-### Upload restrictions
-
-Current upload middleware:
-
-- PDF only
-- 3 MB maximum
-- Memory storage
-
-The file is not written to disk. The server extracts text from the in-memory buffer and then stores extracted text in the report document.
-
-### Why memory storage?
-
-Advantages:
-
-- No temporary-file cleanup
-- Simple request lifecycle
-- Suitable for small PDFs
-
-Disadvantages:
-
-- Memory usage grows with concurrent uploads
-- Not suitable for large files or high traffic
-- A queue/object-storage architecture is better at scale
-
-### Current limitations
-
-- Scanned/image-only PDFs need OCR and may produce little text.
-- DOCX is not supported.
-- Resume text is stored in MongoDB and should have a retention policy.
-- File content scanning is not implemented.
-- The PDF parser result is not yet quality-scored.
+- Makes the model configurable.
+- Clamps `matchScore` to `0..100`.
+- Converts invalid JSON into a `502`-style service error.
+- Does not silently fabricate a successful report.
+- Keeps API keys server-side.
 
 ---
 
-## Database Design
+## Resume processing and PDF generation
 
-### User collection
+### Upload policy
+
+The current upload middleware accepts:
+
+- One file field: `resume`.
+- PDF MIME type only.
+- Maximum size: 3 MB.
+- In-memory storage.
+
+Memory storage is appropriate for the current small-file MVP because the PDF is immediately parsed and is not stored as a binary file. It is not ideal for large files or high concurrency.
+
+### Production evolution
+
+For production-scale uploads:
+
+1. Validate extension, MIME and file signature.
+2. Upload directly to object storage using a signed URL.
+3. Store metadata and object key, not raw files in MongoDB.
+4. Queue extraction and AI analysis.
+5. Delete temporary files after processing.
+6. Encrypt objects at rest and restrict access by user ownership.
+
+### Puppeteer security boundary
+
+AI-generated HTML is rendered by a headless browser. The service should keep generated HTML constrained:
+
+- No scripts.
+- No remote resources unless explicitly allowed.
+- No user-controlled navigation.
+- Short browser lifetime.
+- Always close the browser in `finally`.
+
+The current implementation generates an ATS-oriented HTML resume and renders it to A4 PDF. It is not yet a full deterministic resume template engine.
+
+---
+
+## Data model and persistence
+
+### User document
+
+The user model stores the account identity and password hash:
 
 ```text
-users
-├── _id: ObjectId
-├── username: String, required, unique
-├── email: String, required, unique
-├── password: String, required, bcrypt hash
-├── createdAt
-└── updatedAt
+User
+├── username
+├── email
+└── password (bcrypt hash)
 ```
 
-### InterviewReport collection
+The password should never be returned in public responses. The controllers project only:
 
 ```text
-interviewreports
-├── _id: ObjectId
-├── user: ObjectId -> users._id
-├── title: String
-├── jobDescription: String
-├── resume: String
-├── selfDescription: String
-├── matchScore: Number [0, 100]
+id, username, email
+```
+
+### InterviewReport document
+
+```text
+InterviewReport
+├── user                 → users._id
+├── title
+├── jobDescription
+├── resume
+├── selfDescription
+├── matchScore           0..100
 ├── technicalQuestions[]
 │   ├── question
 │   ├── intention
 │   └── answer
 ├── behavioralQuestions[]
+│   ├── question
+│   ├── intention
+│   └── answer
 ├── skillGaps[]
 │   ├── skill
-│   └── severity
+│   └── severity         low | medium | high
 ├── preparationPlan[]
 │   ├── day
 │   ├── focus
@@ -598,34 +601,44 @@ interviewreports
 └── updatedAt
 ```
 
+The `user` field is indexed because the dominant access pattern is “list this user's reports” and “load this user's report by id.”
+
 ### Relationship
 
-```text
-User 1 ──────────────────── N InterviewReport
-      users._id       interviewreports.user
+```mermaid
+erDiagram
+    USER ||--o{ INTERVIEW_REPORT : owns
+    USER {
+        ObjectId _id
+        string username
+        string email
+        string password
+    }
+    INTERVIEW_REPORT {
+        ObjectId _id
+        ObjectId user
+        string title
+        number matchScore
+        string jobDescription
+        string resume
+        string selfDescription
+        date createdAt
+    }
 ```
 
-### Embedding vs referencing
+### Data retention considerations
 
-Questions, skill gaps, and plan items are embedded because they belong to one report and are normally read together.
+Resume text and job descriptions can contain personal or confidential information. A production version should define:
 
-The user is referenced because:
-
-- One user can own many reports.
-- User identity is managed independently.
-- User data should not be duplicated in every report.
-
-### Suggested indexes for growth
-
-```js
-InterviewReportSchema.index({ user: 1, createdAt: -1 });
-UserSchema.index({ email: 1 }, { unique: true });
-UserSchema.index({ username: 1 }, { unique: true });
-```
+- Retention period.
+- User deletion behavior.
+- Export and deletion endpoints.
+- Encryption and access logging.
+- Whether provider prompts are retained by the AI vendor.
 
 ---
 
-## API Reference
+## API reference
 
 Base URL:
 
@@ -633,9 +646,13 @@ Base URL:
 http://localhost:3000
 ```
 
-### `GET /`
+All JSON responses use a `message` field for user-readable errors where applicable.
 
-Health endpoint.
+### Health/root endpoint
+
+```http
+GET /
+```
 
 Response:
 
@@ -643,42 +660,33 @@ Response:
 HireLens API is running
 ```
 
-### `POST /api/auth/register`
+### Register
 
-Registers a user and sets an authentication cookie.
+```http
+POST /api/auth/register
+Content-Type: application/json
+```
 
-Request:
+Body:
 
 ```json
 {
-  "username": "sonam",
+  "username": "Sonam Narula",
   "email": "sonam@example.com",
   "password": "Test12345"
 }
 ```
 
-Success response: `201 Created`
+Success: `201 Created`, sets `token` cookie.
 
-```json
-{
-  "message": "User registered successfully",
-  "user": {
-    "id": "ObjectId",
-    "username": "sonam",
-    "email": "sonam@example.com"
-  }
-}
+### Login
+
+```http
+POST /api/auth/login
+Content-Type: application/json
 ```
 
-Possible errors:
-
-- `400`: missing field or password shorter than 8 characters
-- `409`: username or email already exists
-- `500`: registration/database failure
-
-### `POST /api/auth/login`
-
-Request:
+Body:
 
 ```json
 {
@@ -687,166 +695,181 @@ Request:
 }
 ```
 
-Success response: `200 OK`, plus an HTTP-only `token` cookie.
+Success: `200 OK`, sets `token` cookie.
 
-### `POST /api/auth/logout`
+### Logout
 
-Clears the authentication cookie.
+```http
+POST /api/auth/logout
+```
 
-### `GET /api/auth/me`
+Clears the `token` cookie.
 
-Requires the `token` cookie.
+### Current user
 
-Returns the currently authenticated user without the password.
+```http
+GET /api/auth/me
+Cookie: token=<jwt>
+```
 
-### `POST /api/interview`
+Success: `200 OK`.
 
-Requires authentication and `multipart/form-data`.
+### Generate interview report
+
+```http
+POST /api/interview
+Content-Type: multipart/form-data
+Cookie: token=<jwt>
+```
 
 Fields:
 
-| Field | Type | Required |
-|---|---|---:|
-| `resume` | PDF file | Resume or self-description |
-| `jobDescription` | Text | Yes |
-| `selfDescription` | Text | Resume or self-description |
+| Field | Required | Description |
+|---|---:|---|
+| `resume` | One of resume/context | PDF file, max 3 MB |
+| `jobDescription` | Yes | Target role requirements |
+| `selfDescription` | One of resume/context | Optional candidate context |
 
-Example:
+At least one of `resume` or non-empty `selfDescription` is required.
 
-```bash
-curl -b /tmp/hirelens-cookies.txt \
-  -F "resume=@/absolute/path/to/resume.pdf" \
-  -F "jobDescription=We are looking for a React engineer..." \
-  -F "selfDescription=I build web applications with React and Node.js." \
-  http://localhost:3000/api/interview
+Success: `201 Created`.
+
+### List reports
+
+```http
+GET /api/interview
+Cookie: token=<jwt>
 ```
 
-### `GET /api/interview`
+Returns the current user's reports without the large resume and job-description fields.
 
-Returns reports belonging to the authenticated user. Large source fields are excluded from the list response.
+### Get one report
 
-### `GET /api/interview/report/:interviewId`
+```http
+GET /api/interview/report/:interviewId
+Cookie: token=<jwt>
+```
 
-Returns one report, only if it belongs to the authenticated user.
+The user ownership filter is applied server-side.
 
-### `POST /api/interview/resume/pdf/:interviewReportId`
+### Generate resume PDF
 
-Generates an ATS-oriented resume PDF from the saved report context.
+```http
+POST /api/interview/resume/pdf/:interviewReportId
+Cookie: token=<jwt>
+```
 
-Response:
+Success:
 
 ```text
 Content-Type: application/pdf
+Content-Disposition: attachment
 ```
+
+### Status code semantics
+
+| Status | Meaning |
+|---:|---|
+| `200` | Successful read/action |
+| `201` | Resource created |
+| `400` | Invalid or incomplete input |
+| `401` | Missing/invalid authentication |
+| `404` | Resource does not exist for this user |
+| `409` | Duplicate account conflict |
+| `502` | Upstream AI returned unusable output |
+| `503` | Required service configuration or provider unavailable |
+| `500` | Unexpected server failure |
 
 ---
 
-## Environment Configuration
+## Environment configuration
 
-Create a root `.env` file. Use [`.env.example`](./.env.example) as the template.
+Create a root `.env` file. Never commit it.
 
 ```env
-MONGO_URI=mongodb://127.0.0.1:27017/hirelens
+MONGO_URI=mongodb+srv://<user>:<password>@<cluster>/<database>
 JWT_SECRET=replace-with-a-long-random-secret
-GOOGLE_GENAI_API_KEY=replace-with-your-gemini-api-key
+GOOGLE_GENAI_API_KEY=replace-with-your-private-key
 GEMINI_MODEL=gemini-flash-lite-latest
 FRONTEND_URL=http://localhost:5173
 PORT=3000
 ```
 
-### MongoDB Atlas
+### Variable reference
 
-```env
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/hirelens?retryWrites=true&w=majority
-```
-
-If a password contains reserved URI characters such as `@`, `#`, `/`, `:`, or `%`, URL-encode the password.
-
-### Generate a JWT secret
-
-On macOS/Linux:
-
-```bash
-openssl rand -base64 32
-```
-
-Never commit `.env` to Git.
-
-### Required vs optional variables
-
-| Variable | Required | Used by |
+| Variable | Required | Purpose |
 |---|---:|---|
-| `MONGO_URI` | Yes | Mongoose connection |
-| `JWT_SECRET` | Yes for auth | JWT signing/verifying |
-| `GOOGLE_GENAI_API_KEY` | Yes for AI | Gemini service |
-| `GEMINI_MODEL` | No | Defaults to `gemini-flash-lite-latest` |
-| `FRONTEND_URL` | No | CORS; defaults to localhost frontend |
+| `MONGO_URI` | Yes | MongoDB connection string |
+| `JWT_SECRET` | Yes | JWT signing and verification |
+| `GOOGLE_GENAI_API_KEY` | Yes for AI | Server-side Gemini credential |
+| `GEMINI_MODEL` | No | Configurable Gemini model |
+| `FRONTEND_URL` | No | Primary allowed frontend origin |
 | `PORT` | No | Defaults to `3000` |
 
-If registration or login displays `Unable to register user` or `Unable to log in`, first verify that `JWT_SECRET` exists and restart the backend.
+The server validates required configuration before connecting and listening. Missing credentials should fail at startup rather than during a user request.
+
+### Secret safety
+
+Do not:
+
+- Paste API keys into chat, screenshots or issues.
+- Put secrets in `frontend/.env` if the browser can bundle them.
+- Commit `.env`.
+- Log full tokens or provider keys.
+- Use `git add -f .env`.
+
+If a key is exposed, revoke it and generate a replacement.
 
 ---
 
-## Local Development
+## Quick start
 
 ### Prerequisites
 
-- Node.js 20+
-- npm
-- MongoDB local instance or MongoDB Atlas
-- Gemini API key for AI functionality
+- Node.js 20 or newer.
+- npm.
+- MongoDB Atlas or local MongoDB.
+- Gemini API key for AI analysis.
 
-### Install backend dependencies
+### Backend
 
 ```bash
 cd /Users/sonamnarula/Desktop/HireLens
 npm install
-```
-
-### Start backend
-
-```bash
+cp .env.example .env
+# Edit .env with your own values
 npm run dev
 ```
 
-Backend:
+Expected:
 
 ```text
-http://localhost:3000
+MongoDB Connected: <host>
+Server is running on port 3000
 ```
 
-### Install frontend dependencies
+### Frontend
 
 Open a second terminal:
 
 ```bash
 cd /Users/sonamnarula/Desktop/HireLens/frontend
 npm install
-```
-
-### Start frontend
-
-```bash
 npm run dev
 ```
 
-Frontend:
+Open:
 
 ```text
 http://localhost:5173
 ```
 
-### Build frontend
+The frontend also works at `http://127.0.0.1:5173`; the backend allows both local development origins.
+
+### Smoke test
 
 ```bash
-cd frontend
-npm run build
-```
-
-### Basic backend checks
-
-```bash
-curl http://localhost:3000
+curl http://localhost:3000/
 ```
 
 Register:
@@ -855,715 +878,682 @@ Register:
 curl -i -c /tmp/hirelens-cookies.txt \
   -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username":"newuser","email":"newuser@example.com","password":"Test12345"}'
+  -d '{"username":"demo","email":"demo@example.com","password":"Test12345"}'
 ```
 
-Login:
-
-```bash
-curl -i -c /tmp/hirelens-cookies.txt \
-  -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"newuser@example.com","password":"Test12345"}'
-```
-
-Protected user endpoint:
+Check session:
 
 ```bash
 curl -i -b /tmp/hirelens-cookies.txt \
   http://localhost:3000/api/auth/me
 ```
 
----
+### Scripts
 
-## Frontend Architecture
+Backend:
 
-### Public routes
+```bash
+npm run dev
+npm test
+```
 
-| Route | Purpose |
-|---|---|
-| `/` | Landing page |
-| `/login` | Login form |
-| `/register` | Registration form |
+Frontend:
 
-### Protected routes
-
-| Route | Purpose |
-|---|---|
-| `/dashboard` | Preparation workspace overview |
-| `/resume` | Resume upload and analysis setup |
-| `/match` | Target role input |
-| `/interview` | Interview preparation entry point |
-| `/interview/:id` | Generated report |
-| `/settings` | Account/settings surface |
-
-### Protected-route lifecycle
-
-1. User navigates to a protected route.
-2. `AuthGuard` calls `GET /api/auth/me`.
-3. Browser sends the HTTP-only cookie.
-4. Backend validates the token.
-5. If valid, the page renders.
-6. If invalid or absent, the user is redirected to `/login`.
-
-### Design system
-
-The frontend uses reusable CSS tokens for:
-
-- Backgrounds
-- Surfaces
-- Borders
-- Muted text
-- Lime accent
-- Blue/orange status accents
-- Typography
-- Spacing
-- Buttons
-- Cards
-- Navigation
-
-The design intentionally avoids fake metrics in the initial dashboard. Empty states explain what the user must provide before meaningful insights can be calculated.
+```bash
+npm run dev
+npm run build
+npm run preview
+```
 
 ---
 
-## Error Handling
+## Frontend architecture
 
-### Backend
+The frontend is intentionally compact and currently composed from `frontend/src/main.jsx` and `frontend/src/styles.css`.
 
-Controllers return meaningful status codes:
+### Route map
 
-- `400 Bad Request`: invalid or incomplete input
-- `401 Unauthorized`: missing/invalid authentication
-- `404 Not Found`: report/user does not exist
-- `409 Conflict`: duplicate account
-- `502 Bad Gateway`: invalid AI response
-- `503 Service Unavailable`: missing AI configuration
-- `500 Internal Server Error`: unexpected server failure
+| Route | Surface | Access |
+|---|---|---|
+| `/` | Landing page | Public |
+| `/login` | Login | Public |
+| `/register` | Registration | Public |
+| `/dashboard` | Workspace overview | Protected |
+| `/resume` | Resume lab and AI analysis | Protected |
+| `/match` | Match-score workspace | Protected |
+| `/interview` | Interview preparation entry | Protected |
+| `/interview/:id` | Generated report | Protected |
+| `/settings` | Profile/settings surface | Protected |
 
-The application-level Express error middleware prevents raw stack traces from being returned to clients.
+### Auth guard behavior
 
-### Frontend
+On protected routes, `AuthGuard` calls `/api/auth/me`. If the request fails, the user is redirected to `/login`. Axios is configured with:
 
-Frontend forms display:
+```js
+withCredentials: true
+```
 
-- Validation errors
-- API error messages when available
-- Connection/configuration failures
-- Loading text during requests
+This is necessary because the session is carried in a cookie rather than a browser-managed authorization header.
 
-The UI should not show a success state when the API call fails.
+### UI state model
+
+Every important operation should have:
+
+```text
+idle → loading → success
+             ↘ error
+```
+
+The resume lab exposes:
+
+- Missing-input validation.
+- Selected-file state.
+- Disabled/loading action button.
+- API error message.
+- Navigation to the generated report.
+
+### Current frontend improvement opportunities
+
+- Add a global toast system.
+- Add report list state to the dashboard.
+- Add retry/backoff messaging for temporary AI outages.
+- Add an AbortController timeout for long AI requests.
+- Split the large page module into feature folders.
+- Add accessible labels and automated accessibility checks.
 
 ---
 
-## Security Design
+## Design system
+
+HireLens uses a dark-first visual system intended to feel closer to a focused professional workspace than a tutorial dashboard.
+
+### Design principles
+
+- Deep charcoal surfaces instead of pure black.
+- Lime accent reserved for primary action and progress signal.
+- Quiet borders and restrained shadows.
+- Generous whitespace and clear hierarchy.
+- Real iconography rather than emoji UI controls.
+- Responsive navigation and compact mobile behavior.
+- Empty states that explain the next action.
+
+### Component vocabulary
+
+```text
+Button
+Input / Textarea
+Card / Panel
+Status pill
+Empty state
+Upload zone
+Sidebar navigation
+Score visualization
+Question block
+Preparation-plan item
+```
+
+The next design-system step is extracting these primitives into reusable React components with typed variants and centralized tokens.
+
+---
+
+## Error handling and observability
+
+### Error flow
+
+```mermaid
+flowchart TD
+    Input["Request input"] --> Validate{"Valid?"}
+    Validate -->|No| E400["400 user input error"]
+    Validate -->|Yes| Work["Controller/service work"]
+    Work --> External{"External call succeeds?"}
+    External -->|No| E5xx["Mapped service error"]
+    External -->|Yes| Persist["Persist / respond"]
+    Persist --> Success["Success response"]
+```
+
+The backend has a final Express error middleware. Known service failures should retain meaningful status codes; unexpected errors should not leak stack traces to the browser.
+
+### Current observability
+
+- Startup logs MongoDB connection host and server port.
+- Request failures are logged server-side.
+- Browser receives a safe message.
+- Secrets are not intended to be logged.
+
+### Production observability plan
+
+- Correlation/request id.
+- Structured JSON logs.
+- Request duration and status metrics.
+- AI latency, token usage and provider status metrics.
+- Error tracking with redacted payloads.
+- Alerts for repeated provider failures.
+
+---
+
+## Security model
 
 ### Implemented protections
 
-- Passwords are never stored as plain text.
-- Passwords are hashed with bcrypt.
-- JWT is stored in an HTTP-only cookie.
-- Protected routes verify JWT signatures.
-- Report reads use authenticated-user ownership filters.
-- PDF uploads are size-limited.
-- Non-PDF uploads are rejected.
-- API keys are loaded from environment variables.
-- `.env` is excluded from Git.
-- Public user responses omit the password hash.
+- bcrypt password hashing.
+- HTTP-only authentication cookie.
+- JWT signature verification.
+- Protected routes.
+- User-scoped report queries.
+- CORS allowlist for local frontend origins.
+- PDF-only upload policy.
+- 3 MB upload limit.
+- Generic unexpected-error responses.
+- Environment secrets outside source control.
 
-### Security improvements required before production
+### Threat model
 
-#### Rate limiting
+| Threat | Mitigation |
+|---|---|
+| Password database leak | bcrypt hash, never plaintext |
+| Token access from ordinary JS | HTTP-only cookie |
+| Cross-origin credential abuse | CORS allowlist |
+| Report ID enumeration | User ownership in every query |
+| Oversized upload | Multer file-size limit |
+| Unsupported upload type | PDF MIME policy |
+| Prompt data leakage | Keep provider key server-side; document retention policy |
+| HTML/Puppeteer abuse | Constrain generated HTML; no scripts/resources |
+| Brute-force login | Rate limiting still required |
+| CSRF | SameSite helps locally; add CSRF strategy for cross-site production |
 
-Add rate limiting to:
+### Production security backlog
 
-- Login
-- Registration
-- AI report generation
-- PDF generation
-
-AI endpoints can create direct cost exposure.
-
-#### CSRF protection
-
-Cookie authentication requires CSRF analysis. Add CSRF tokens or a robust same-origin strategy for cross-site deployments.
-
-#### Content security policy
-
-Add security headers using Helmet and configure a strict Content Security Policy.
-
-#### HTML sanitization
-
-Gemini-generated resume HTML should be sanitized or rendered in a restricted environment. Do not allow arbitrary scripts, external tracking resources, or dangerous URLs.
-
-#### Data privacy
-
-Resume content can contain personal information. Add:
-
-- Data retention policy
-- Delete-account endpoint
-- Report deletion endpoint
-- Encryption at rest where appropriate
-- Access logging
-- Privacy policy and consent
-
-#### File safety
-
-For production:
-
-- Verify file signatures, not only MIME type.
-- Scan uploads for malware.
-- Move uploads to private object storage.
-- Process asynchronously.
-- Never expose original files publicly.
+- Rate limit login and AI endpoints.
+- Add helmet/security headers.
+- Add request-body size limits.
+- Validate PDF magic bytes, not only MIME.
+- Encrypt sensitive persisted text where required.
+- Add account deletion and data export.
+- Add refresh-token rotation or short-lived access-token strategy.
+- Add CSRF protection if cookie behavior requires cross-site requests.
+- Redact resume text from logs and traces.
 
 ---
 
-## Production Readiness
+## Performance and scalability
 
-### Current local-development assumptions
+### Current MVP characteristics
 
-- One Node.js process
-- Synchronous request handling for AI operations
-- In-memory uploaded PDF
-- MongoDB connection available directly
-- Puppeteer launches a local Chromium instance
-- Frontend uses a local API URL
-
-### Production changes recommended
+The report endpoint is synchronous:
 
 ```text
-Browser
-  |
-  v
-CDN / Static hosting ───────────────┐
-                                    v
-                              Load balancer
-                                    |
-                     ┌──────────────┴──────────────┐
-                     v                             v
-               API instance 1                 API instance 2
-                     |                             |
-                     └──────────────┬──────────────┘
-                                    v
-                              Job queue
-                         ┌──────────┴──────────┐
-                         v                     v
-                   AI worker              PDF worker
-                         |                     |
-                         v                     v
-                    Gemini API          Chromium/Puppeteer
-                                    |
-                                    v
-                        MongoDB + object storage
+upload → parse → Gemini request → MongoDB write → response
 ```
 
-### Why a queue?
+This is easy to understand and works well for small demos, but the request remains open while AI and parsing complete.
 
-Gemini and Puppeteer can take seconds. Keeping the HTTP request open:
+### Scaling bottlenecks
 
-- Consumes server connections.
-- Makes retries difficult.
-- Creates poor UX on mobile networks.
-- Increases timeout risk.
+1. PDF parsing consumes server memory.
+2. Gemini latency keeps an HTTP request open.
+3. Puppeteer launches a browser process.
+4. Large resume text increases prompt size and cost.
+5. Concurrent requests can exhaust provider quota.
 
-A production workflow should:
+### Production architecture
 
-1. Create a report job.
-2. Return `202 Accepted` with a job id.
-3. Process the job in a worker.
-4. Store progress/status.
-5. Let the frontend poll or use Server-Sent Events/WebSockets.
+```mermaid
+flowchart LR
+    API["API"] --> Queue["Job queue"]
+    Queue --> Worker["AI worker"]
+    Worker --> Parser["PDF parser"]
+    Worker --> Gemini["Gemini provider"]
+    Worker --> DB[(MongoDB)]
+    Worker --> Store[(Object storage)]
+    API --> DB
+    API --> Status["Job status endpoint / SSE"]
+    Status --> UI["Frontend"]
+```
+
+The API would return `202 Accepted` with a job id. The frontend would poll or subscribe to status updates. Workers could retry transient provider failures with exponential backoff and a dead-letter queue.
+
+### Cost and latency controls
+
+- Truncate or summarize very large resumes.
+- Cache identical normalized inputs.
+- Use a cheaper flash model for first-pass analysis.
+- Limit report question counts.
+- Add per-user quotas.
+- Queue PDF generation.
+- Avoid sending binary PDFs directly to the AI provider when text extraction is enough.
 
 ---
 
-## Scaling Strategy
-
-### Bottlenecks
-
-1. Gemini latency and quotas.
-2. Puppeteer CPU and memory usage.
-3. Large PDF parsing.
-4. MongoDB report growth.
-5. Repeated analysis of identical inputs.
-
-### Scaling approaches
-
-#### Cache analysis results
-
-Create a normalized hash of:
-
-```text
-resume text + job description + self-description + prompt version
-```
-
-If the same input is analyzed again, return a cached result when policy allows.
-
-#### Use object storage
-
-Store original PDFs in private S3-compatible storage, not application memory. Store only a secure object key in MongoDB.
-
-#### Separate workers
-
-Use separate worker pools for:
-
-- AI analysis
-- PDF rendering
-
-This prevents heavy Puppeteer jobs from starving normal API requests.
-
-#### Add observability
-
-Track:
-
-- Request latency
-- Gemini latency
-- Token usage/cost
-- PDF render latency
-- Error rate
-- Queue depth
-- MongoDB query latency
-
-#### Version prompts
-
-Store a prompt version with each report. This allows comparison when prompts or models change.
-
----
-
-## Testing Strategy
+## Testing and verification
 
 ### Current checks
+
+Backend syntax:
 
 ```bash
 npm test
 ```
 
-The current script checks server and app syntax.
+Frontend production build:
 
 ```bash
 cd frontend
 npm run build
 ```
 
-The frontend production bundle is verified by Vite.
+Manual smoke path:
 
-### Recommended automated tests
+```text
+Register → Login → /api/auth/me → Upload PDF → Analyze → Read report
+```
+
+### Recommended automated test pyramid
 
 #### Unit tests
 
-- Password validation
-- Public-user projection
-- JWT cookie configuration
-- Match-score clamping
-- AI response parsing
-- Resume text extraction
+- Password validation.
+- Email normalization.
+- Score clamping.
+- Report-shape validation.
+- Upload policy.
+- Prompt construction.
 
-#### API integration tests
+#### Integration tests
 
-- Register valid user
-- Reject duplicate user
-- Reject weak password
-- Login valid credentials
-- Reject invalid credentials
-- Access protected endpoint with no cookie
-- Access report owned by another user
-- Reject non-PDF upload
-- Reject oversized PDF
-
-#### Frontend tests
-
-- Login form validation
-- Registration form validation
-- Loading state
-- API error state
-- Protected-route redirect
-- File selection
-- Report rendering
+- Register and duplicate conflict.
+- Login invalid credentials.
+- Cookie-protected `/api/auth/me`.
+- Unauthenticated report rejection.
+- Cross-user report access rejection.
+- Report persistence.
 
 #### Contract tests
 
-Keep frontend API clients and backend response shapes synchronized.
+- Gemini response parsing.
+- PDF extraction output.
+- PDF response headers.
+
+#### End-to-end tests
+
+- Browser registration and login.
+- Resume upload.
+- Loading and error states.
+- Report navigation.
+
+### Test cases to defend in an interview
+
+| Case | Expected |
+|---|---|
+| Password shorter than 8 chars | `400` |
+| Existing email/username | `409` |
+| Wrong login password | `401` |
+| Missing token | `401` |
+| Invalid token | `401` |
+| Missing job description | `400` |
+| No resume and no self-description | `400` |
+| Non-PDF upload | Rejected |
+| File over 3 MB | Rejected |
+| AI provider unavailable | Service error, no fake report |
+| Report owned by another user | `404` |
 
 ---
 
 ## Troubleshooting
 
-### `Unable to register user`
+### `nodemon: command not found`
 
-Check:
-
-1. Backend is running on port `3000`.
-2. MongoDB connection succeeded.
-3. `JWT_SECRET` exists in the root `.env`.
-4. You restarted the backend after editing `.env`.
-5. The email/username is not already registered.
-
-### `Unable to log in`
-
-Check:
-
-1. Email is exactly the registered email.
-2. Password is correct.
-3. Backend is running.
-4. `JWT_SECRET` exists.
-5. Browser requests use credentials.
-
-### `MongoDB connection failed: bad auth`
-
-Check:
-
-- Database Access username, not Atlas account email.
-- Password is correct.
-- URI has no `< >` placeholder brackets.
-- Password URI-encodes reserved characters.
-- Atlas Network Access allows your IP.
-
-### `Cannot connect to localhost:3010`
-
-The normal backend port is `3000`. Port `3010` only works if started explicitly:
+From the project root:
 
 ```bash
-PORT=3010 node server.js
+npm install
+npm run dev
 ```
+
+### `app.listen is not a function`
+
+Check that the Express app is exported with:
+
+```js
+module.exports = app;
+```
+
+not `module.export`.
+
+### `JWT_SECRET is not configured`
+
+Add `JWT_SECRET` to the root `.env`, then fully restart the backend. Do not put it in the frontend.
 
 ### `GOOGLE_GENAI_API_KEY is not configured`
 
-Add the key to the root `.env` and restart the backend:
+Add the key to the root `.env`, never to browser code, then restart Node. Verify without printing the secret:
 
-```env
-GOOGLE_GENAI_API_KEY=your-key
+```bash
+grep -q '^GOOGLE_GENAI_API_KEY=.' .env \
+  && echo "Gemini key configured" \
+  || echo "Gemini key missing"
 ```
 
-### `Only PDF resumes are supported`
+### Gemini model not found or unavailable
 
-The current backend accepts PDF only. DOCX support requires a separate parser and validation path.
+Check the model configured in `.env`:
 
-### Puppeteer fails in deployment
+```bash
+grep '^GEMINI_MODEL=' .env
+```
 
-Chromium system dependencies may be missing. Use a container/image with Chromium dependencies or configure a managed browser/runtime.
+Model names and availability can change. List models using the provider SDK or select an available model in Google AI Studio. Restart the backend after changing `.env`.
+
+### `Internal server error` during analysis
+
+The browser message is intentionally generic. Read the backend terminal's latest error. Common causes:
+
+- Provider model unavailable.
+- Provider quota/rate limit.
+- Invalid API key.
+- Malformed model JSON.
+- MongoDB write failure.
+- PDF parser failure.
+
+Do not share the API key when sharing logs.
+
+### `Unable to connect`
+
+Check both processes:
+
+```bash
+lsof -nP -iTCP:3000 -sTCP:LISTEN
+curl http://localhost:3000/
+```
+
+Use the same host consistently:
+
+```text
+Frontend: http://localhost:5173
+Backend:  http://localhost:3000
+```
+
+The current development CORS policy supports both `localhost` and `127.0.0.1`.
+
+### Multiple backend processes
+
+Multiple nodemon instances can make debugging confusing. Stop duplicate HireLens terminals with `Control + C`, then start one backend:
+
+```bash
+cd /Users/sonamnarula/Desktop/HireLens
+npm run dev
+```
+
+Never kill unrelated applications by process name.
+
+### Puppeteer fails
+
+Chromium may need deployment-specific dependencies. Keep Puppeteer browser lifecycle inside `try/finally`, and use a container/runtime that supports headless Chromium.
 
 ---
 
-## System Design Interview Questions
+## System design interview guide
 
-### 1. Design HireLens for one million users
+### 1. Design a production version of HireLens
 
-Discuss:
+**Start with requirements:**
 
-- CDN-hosted React static assets
-- Stateless API instances behind a load balancer
-- HTTP-only cookie sessions backed by signed JWTs
-- MongoDB replica set/sharding strategy
-- Redis for rate limits, short-lived job state, and caching
-- Object storage for resumes
-- Queue-based Gemini/PDF processing
-- Worker autoscaling
-- Per-user authorization
-- Observability and cost controls
+- Candidate registers and authenticates.
+- Candidate uploads a resume.
+- Candidate adds a target job.
+- System produces a structured report.
+- Candidate can revisit reports and export a PDF.
 
-Trade-off:
+**Non-functional requirements:**
 
-Synchronous processing is simpler for a prototype. Asynchronous jobs are more reliable and scalable but add status management and operational complexity.
+- Private user data.
+- Predictable latency for normal requests.
+- Retryable AI failures.
+- Quotas and abuse protection.
+- Horizontal scalability.
+- Observability and auditability.
 
-### 2. How would you prevent Gemini cost abuse?
-
-Answer:
-
-1. Authenticate report-generation requests.
-2. Rate-limit by user, IP, and account age.
-3. Enforce input size limits.
-4. Limit report frequency per day.
-5. Cache identical inputs.
-6. Track token usage and cost.
-7. Add a queue with concurrency limits.
-8. Reject suspicious prompt payloads.
-9. Add account quotas and billing controls.
-
-### 3. How would you make report generation asynchronous?
+**First architecture:**
 
 ```text
-POST /api/interview
-        |
-        v
-Validate and create Job(status=queued)
-        |
-        v
-Return 202 { jobId }
-        |
-        v
-Queue worker reads job
-        |
-        v
-Extract PDF -> Gemini -> validate -> save report
-        |
-        v
-Update Job(status=completed, reportId)
+React → API gateway/load balancer → stateless API
+                                      ├── MongoDB
+                                      ├── object storage
+                                      ├── queue
+                                      └── AI workers
 ```
 
-The frontend polls:
+**Why asynchronous processing?**
 
-```text
-GET /api/jobs/:jobId
-```
+AI calls and PDF rendering can take seconds or fail transiently. A queue prevents the API request from being held open and lets workers retry safely.
 
-or receives updates through Server-Sent Events.
+### 2. How would you scale from 100 to 1 million users?
 
-### 4. How would you guarantee report ownership?
+1. Keep API instances stateless.
+2. Store files in object storage, not process memory.
+3. Add a queue for parsing and AI jobs.
+4. Add MongoDB indexes on `user`, `createdAt` and job status.
+5. Add quotas per user and per IP.
+6. Cache normalized repeated analysis only where privacy policy permits.
+7. Separate report reads from AI writes.
+8. Add worker autoscaling based on queue depth.
+9. Add CDN delivery for frontend assets.
+10. Use provider fallbacks only with an explicit data policy.
 
-Never query only by report id:
+### 3. How do you prevent unauthorized report access?
+
+Never trust a report id alone. After verifying the JWT:
 
 ```js
-InterviewReport.findById(id)
-```
-
-Use both:
-
-```js
-InterviewReport.findOne({
-    _id: id,
-    user: req.user.id
+findOne({
+  _id: requestedReportId,
+  user: req.user.id
 })
 ```
 
-Authorization belongs in the data query, not only in the frontend.
+If no matching document exists, return `404`. This avoids confirming whether another user's report id exists.
 
-### 5. How would you handle duplicate requests?
+### 4. How would you handle AI outages?
 
-Use an idempotency key:
+- Return a clear retryable error.
+- Classify provider errors into invalid request, quota, unavailable and timeout.
+- Retry only transient categories.
+- Use exponential backoff with jitter in workers.
+- Persist job status (`queued`, `processing`, `completed`, `failed`).
+- Never create a fake success report.
+- Show the user whether retrying is safe.
 
-```text
-Idempotency-Key: client-generated-request-id
-```
+### 5. How would you improve AI quality?
 
-Store the key with the job/user and return the existing job for duplicate requests. This prevents double AI charges when a browser retries after a timeout.
+- Use a versioned prompt template.
+- Use structured output and schema validation.
+- Normalize resume text before prompting.
+- Keep candidate evidence separate from inferred recommendations.
+- Ask for citations to resume sections in a future schema.
+- Evaluate on a fixed benchmark of anonymized resumes and roles.
+- Track hallucination, completeness and consistency metrics.
 
-### 6. How would you design report versioning?
+### 6. How would you design a deterministic ATS score?
 
-Store:
-
-```text
-modelName
-promptVersion
-schemaVersion
-createdAt
-```
-
-This allows old reports to render after prompt changes and makes output quality measurable over time.
-
-### 7. How would you improve search across reports?
-
-For simple filtering, MongoDB indexes are enough. For full-text search across resume and job descriptions, use MongoDB Atlas Search or a dedicated search service. Do not scan large text fields on every request.
-
-### 8. How would you ensure an AI response is safe to persist?
-
-1. Use structured output.
-2. Validate every field.
-3. Clamp numeric ranges.
-4. Limit string/array lengths.
-5. Reject missing required fields.
-6. Sanitize generated HTML.
-7. Log schema failures without logging sensitive resume text.
-8. Retry only bounded, transient failures.
-
-### 9. What happens if Gemini is unavailable?
-
-The API should:
-
-- Return a clear temporary failure.
-- Avoid creating a partial report.
-- Preserve the uploaded input/job state if using a queue.
-- Retry transient errors with exponential backoff.
-- Stop retrying after a bounded limit.
-- Show the user an actionable message.
-
-### 10. How would you design multi-tenancy?
-
-Every document would include:
+Do not rely only on an LLM. Build a hybrid:
 
 ```text
-organizationId
+Parse resume
+  → normalize terms and synonyms
+  → extract job skills and constraints
+  → compute keyword/semantic coverage
+  → check section/readability rules
+  → combine weighted signals
+  → ask LLM for explanation, not the numeric truth
 ```
 
-Every query would filter by both:
+This makes the score reproducible and keeps the model focused on explanations and suggestions.
+
+### 7. What would you cache?
+
+Potential cache keys:
 
 ```text
-organizationId + user/resource id
+hash(normalized_resume + normalized_job + prompt_version + model)
 ```
 
-Add compound indexes and enforce tenant access in backend middleware/service functions.
+Cache only if:
 
-### 11. How would you protect resume privacy?
+- The user has permission to reuse the result.
+- Sensitive data handling is documented.
+- The result is versioned.
+- Invalidations happen when prompts/models change.
 
-- Encrypt storage and backups.
-- Use private object-storage buckets.
-- Use short-lived signed download URLs.
-- Limit access by user/organization.
-- Delete files on account deletion.
-- Minimize logs.
-- Define retention and consent policies.
+### 8. How do you protect the AI endpoint?
 
-### 12. How would you monitor this system?
-
-Metrics:
-
-- API latency by route
-- 4xx/5xx rate
-- Gemini latency and failure rate
-- AI token usage
-- PDF render duration
-- Queue depth
-- MongoDB slow queries
-- Authentication failures
-
-Logs should include correlation ids but not raw passwords or full resume contents.
+- Authentication.
+- Per-user request quotas.
+- IP rate limiting.
+- Maximum file and text sizes.
+- Request timeout.
+- Queue concurrency limits.
+- Provider budget alerts.
+- Redacted logs.
 
 ---
 
-## Technical Interview Questions
+## Technical interview questions
 
-### MERN and backend
+Use these questions to practice defending the actual codebase.
 
-1. Why did you choose MongoDB for interview reports?
-2. What is the difference between a Mongoose schema and a MongoDB collection?
-3. Why should passwords never be encrypted reversibly?
-4. Explain bcrypt hashing and salt.
-5. What does JWT signature verification guarantee?
-6. What is the difference between authentication and authorization?
-7. Why is the JWT cookie HTTP-only?
-8. What does `withCredentials: true` do in Axios?
-9. How does CORS work with cookies?
-10. Why do controllers and services exist as separate layers?
-11. What happens when Express middleware calls `next()`?
-12. How would you implement a centralized validation layer?
-13. Why should API errors use correct HTTP status codes?
-14. How would you prevent duplicate registration races?
-15. What indexes would you add to the report collection?
+### JavaScript and Node.js
 
-### React and frontend
+1. Why does `require("dotenv").config()` need to run before importing modules that read environment variables?
+2. What is the difference between synchronous and asynchronous Node.js work in the report request?
+3. Why is `finally` important around Puppeteer cleanup?
+4. What happens when an async Express controller throws?
+5. Why should a CPU-heavy PDF operation move to a worker at scale?
 
-1. Why use client-side routing?
-2. What happens when a React state setter is called?
-3. Why is loading state important for AI requests?
-4. How does `AuthGuard` protect frontend routes?
-5. Why is frontend protection alone not enough?
-6. How would you avoid setting state after an unmounted component?
-7. How would you cancel an in-flight Axios request?
-8. How would you split the current large `main.jsx` file?
-9. How do you make a file-upload form accessible?
-10. How would you implement toast notifications?
-11. How would you test a protected route?
-12. What is the difference between controlled and uncontrolled inputs?
+### Express
+
+1. What is the middleware order in `src/app.js`?
+2. Why must `express.json()` run before JSON route handlers?
+3. How does CORS differ from authentication?
+4. Why is the final error middleware placed after routes?
+5. How would you add request ids?
+
+### MongoDB and Mongoose
+
+1. Why is `InterviewReport.user` indexed?
+2. Why embed questions inside a report instead of creating separate collections?
+3. What are the trade-offs of storing extracted resume text in MongoDB?
+4. How would you paginate a user's reports?
+5. How would you implement account deletion?
+
+### Authentication
+
+1. Why bcrypt instead of encryption?
+2. Why is an HTTP-only cookie safer than localStorage for a token?
+3. What happens when the JWT expires?
+4. What is the difference between token verification and resource authorization?
+5. What changes are required for production cookie settings?
 
 ### AI and LLMs
 
-1. Why use structured JSON output instead of free-form output?
-2. What is prompt injection in a resume analyzer?
-3. Why must AI output be validated?
-4. How would you evaluate report quality?
-5. How would you reduce hallucinations?
-6. What is temperature?
-7. How would you version prompts?
-8. What is an embedding and how could it improve job matching?
-9. How would you calculate a deterministic ATS score?
-10. How do you protect private resume content sent to an LLM?
-11. What happens when the model returns malformed JSON?
-12. How would you compare two Gemini models?
+1. Why is structured output necessary?
+2. What happens if the model returns invalid JSON?
+3. How do temperature and prompt constraints affect output?
+4. How do you evaluate an AI-generated match score?
+5. What is prompt injection in a resume or job description?
 
-### Files and PDF generation
+### Files and PDF
 
-1. Why is the current PDF upload stored in memory?
-2. What risks exist with memory storage?
-3. Why should MIME type not be the only file validation?
-4. How does PDF-to-text extraction work?
-5. Why can scanned PDFs fail extraction?
-6. Why can Puppeteer be expensive in production?
-7. How would you sandbox generated HTML?
-8. How would you add DOCX support?
+1. Why is Multer memory storage acceptable for a small MVP?
+2. Why is MIME validation alone insufficient?
+3. What are the risks of rendering generated HTML?
+4. How would you support DOCX?
+5. How would you prevent a 100 MB upload from exhausting memory?
 
 ---
 
-## Project Defense Guide
+## Interview defense guide
 
-### Explain the project in 30 seconds
+### “Explain HireLens in 60 seconds”
 
-> HireLens is a MERN-style AI career preparation platform. A user registers, uploads a PDF resume, and provides a target job description. The backend extracts resume text, sends the combined context to Gemini using a structured response schema, validates and stores the generated report in MongoDB, and returns a match score, skill gaps, technical and behavioral questions, and a preparation plan. Authentication uses bcrypt and JWT in an HTTP-only cookie. Puppeteer can convert an AI-generated ATS-oriented HTML resume into a downloadable PDF.
+> HireLens is a full-stack AI career-preparation platform. A user registers with bcrypt-protected credentials and receives a JWT in an HTTP-only cookie. After authentication, they upload a PDF resume and provide a target job description. The backend extracts resume text, sends the candidate context to Gemini using a structured JSON contract, validates and persists the resulting match score, skill gaps, technical and behavioral questions, and preparation plan in MongoDB. The React frontend renders that report, and the backend can generate an ATS-oriented resume PDF through AI-generated HTML and Puppeteer. The current version is a synchronous MVP; I would move AI and PDF work to a queue with object storage for production scale.
 
-### Explain the most important design decision
+### “What was the hardest engineering problem?”
 
-> The report-generation logic is separated into controllers and services. The controller handles HTTP concerns and ownership, while the AI service handles Gemini prompts, structured output, and PDF rendering. That makes the integration replaceable and keeps the request layer readable.
+> The hardest part was making an external AI dependency behave like a reliable backend service. Model names and quotas can change, provider calls can return transient errors, and free-form text is difficult to render safely. I addressed that with environment-configurable models, a structured response schema, explicit parsing errors, bounded scores, server-side secrets and no fake success fallback. The next step is retries and asynchronous jobs.
 
-### Explain the biggest current limitation
+### “What would you improve next?”
 
-> AI processing is currently synchronous. It is appropriate for a small prototype, but production traffic should use a queue and worker architecture because Gemini and Puppeteer are slow, expensive, and resource-intensive. The next scaling step would be asynchronous jobs with progress tracking.
+> I would add a deterministic ATS signal layer, background jobs, object storage, rate limiting, integration tests, report pagination, deletion/export controls and an evaluation benchmark for AI quality. Those improvements target correctness, privacy, reliability and scale rather than only adding UI.
 
-### Explain how you would improve ATS scoring
+### “What did you intentionally not build?”
 
-The current match score is model-generated. A more explainable implementation would:
+> DOCX parsing, live voice interviews, streaming output and a deterministic ATS engine are not complete in the current code. The current product supports PDF ingestion and a prompt-based AI analysis workflow. Calling those features complete would be misleading.
 
-1. Extract normalized skills and keywords from the job description.
-2. Extract normalized skills from resume text.
-3. Calculate weighted coverage:
+### Strong trade-off vocabulary
 
-```text
-ATS score =
-  required-skill coverage * 0.50
-  + preferred-skill coverage * 0.25
-  + experience evidence * 0.15
-  + section/format checks * 0.10
-```
+Use these phrases naturally:
 
-4. Send the deterministic score plus evidence to Gemini for explanations.
-
-This hybrid approach improves repeatability and explainability.
+- “For the MVP, I chose simplicity and traceability.”
+- “That is synchronous today, but it is a clear queue boundary.”
+- “The model is an explanation layer, not the sole source of truth.”
+- “Authorization is enforced in the query, not only in the route.”
+- “I prefer an explicit failure to a success-shaped fallback.”
+- “The current limit is known and documented.”
 
 ---
 
-## Future Roadmap
+## Roadmap
 
-### Phase 1 — Foundation
+### Reliability
 
-- Complete auth error UX
-- Add automated backend tests
-- Add frontend feature-based file organization
-- Add centralized request validation
+- [ ] Add request timeout and cancellation.
+- [ ] Add provider error classification and retry policy.
+- [ ] Add structured logging and correlation ids.
+- [ ] Add automated integration tests.
 
-### Phase 2 — Career intelligence
+### Product
 
-- Deterministic ATS scoring
-- Dedicated job-description analyzer
-- Resume section extraction
-- Keyword evidence and recommendations
-- Resume version history
+- [ ] Persist and display recent report history on the dashboard.
+- [ ] Add report comparison over time.
+- [ ] Add targeted follow-up questions.
+- [ ] Add interview answer scoring with evidence.
 
-### Phase 3 — Interview simulator
+### Resume intelligence
 
-- Role and experience-level setup
-- One-question-at-a-time interview
-- Answer submission
-- Rubric-based feedback
-- Technical and behavioral scoring
-- Session history
+- [ ] Add DOCX support.
+- [ ] Add deterministic ATS checks.
+- [ ] Add section and formatting diagnostics.
+- [ ] Add explainable skill extraction with source snippets.
 
-### Phase 4 — Production platform
+### Scale and privacy
 
-- Async report jobs
-- Queue and workers
-- Object storage
-- Rate limiting
-- Observability
-- Account deletion/data retention
-- Deployment pipeline
+- [ ] Move files to object storage.
+- [ ] Add queue-backed analysis jobs.
+- [ ] Add quotas and rate limiting.
+- [ ] Add account deletion and data export.
+- [ ] Add retention controls and provider data policy.
+
+### Developer experience
+
+- [ ] Split frontend into feature modules.
+- [ ] Add typed API contracts.
+- [ ] Add OpenAPI documentation.
+- [ ] Add CI for syntax, build, tests and dependency audit.
 
 ---
 
-## License and Security
+## Engineering principles
 
-This project is currently a personal portfolio/learning project. Do not commit:
+1. **Do not invent implementation status.** Document what is working today.
+2. **Keep secrets server-side.** Never bundle provider credentials into React.
+3. **Validate at boundaries.** Browser validation improves UX; server validation protects the system.
+4. **Authorize every resource.** A valid session does not imply access to every report.
+5. **Prefer explicit failure.** Do not return a fake AI report when the provider fails.
+6. **Design the migration path.** A synchronous MVP can have a clean queue boundary.
+7. **Make trade-offs explainable.** The best interview project is one whose decisions you can defend.
 
-- `.env`
-- MongoDB credentials
-- Gemini API keys
-- JWT secrets
-- Personal resumes
-- Generated private reports
+---
 
-If a credential is ever exposed publicly, rotate it immediately and remove it from Git history.
+## License
+
+This project is currently intended as a portfolio and learning project. Add a formal license before distributing it as a reusable open-source package.
+
