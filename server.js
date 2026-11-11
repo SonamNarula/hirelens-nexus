@@ -3,9 +3,9 @@ require("dotenv").config();
 const app = require("./src/app");
 const connectToDB = require("./src/config/database");
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-async function startServer() {
+const startServer = async () => {
   try {
     await connectToDB();
 
@@ -13,9 +13,9 @@ async function startServer() {
       console.log(`Server is running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("Server start nahi ho paya:", error.message);
+    console.error(`Server start nahi ho paya: ${error.message}`);
     process.exit(1);
   }
-}
+};
 
 startServer();
