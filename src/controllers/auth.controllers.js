@@ -1,4 +1,4 @@
-
+const bcrypt = require("bcryptjs");
 const userModel = require("../models/user.model");
 
 /**
@@ -18,23 +18,45 @@ const userModel = require("../models/user.model");
  * @access Public
  */
 async function registerUserController(req, res) {
-    // Registration logic will be implemented here
-    const{username, email, password} = req.body
+    const { username, email, password } = req.body;
 
-    if(!username || !email ||!password){
+    if (!username || !email || !password) {
         return res.status(400).json({
             message: "Please provide username, email and password"
-        })
+        });
     }
 
-    const isUserAlreadyExists = await userModel.findOne({
-        $or:[{username}, {email}]
-    })
+    try {
+        const isUserAlreadyExists = await userModel.findOne({
+            $or: [{ username }, { email }]
+        });
 
-    if(isUserAlreadyExists){
-        return res.status(400).json({
-            message:"accoung already exists with this email address or username!!"
-        })
+        if (isUserAlreadyExists) {
+            return res.status(409).json({
+                message: "Account already exists with this email address or username"
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await userModel.create({
+            username,
+            email,
+            password: hashedPassword
+        });
+
+        return res.status(201).json({
+            message: "User registered successfully",
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email
+            }
+        });
+    } catch (error) {
+        console.error("Registration error:", error);
+        return res.status(500).json({
+            message: "Internal server error"
+        });
     }
 }
 

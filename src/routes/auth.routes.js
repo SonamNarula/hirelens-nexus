@@ -1,7 +1,8 @@
 
 const { Router } = require("express");
+const { registerUserController } = require("../controllers/auth.controllers");
 
-const authRouter = require("../controllers/auth.controller");
+const authRouter = Router();
 
 /**
  * @route   POST /api/auth/register
@@ -16,24 +17,7 @@ const authRouter = require("../controllers/auth.controller");
  * 5. Save the user in MongoDB
  * 6. Return a success response
  */
-authRouter.post("/register", async (req, res) => {
-    try {
-        // Registration logic will be implemented here
-
-        return res.status(501).json({
-            success: false,
-            message: "Registration logic not implemented yet"
-        });
-
-    } catch (error) {
-        console.error("Registration error:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
-    }
-});
+authRouter.post("/register", registerUserController);
 
 // Export the authentication router
 module.exports = authRouter;
