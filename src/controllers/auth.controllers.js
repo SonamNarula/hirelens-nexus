@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const userModel = require("../models/user.model");
+const bcrypt = require("bcryptjs")
 
 /**
  * @function registerUserController
@@ -36,6 +37,8 @@ async function registerUserController(req, res) {
                 message: "Account already exists with this email address or username"
             });
         }
+
+        
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await userModel.create({
