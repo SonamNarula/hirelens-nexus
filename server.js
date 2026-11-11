@@ -6,7 +6,7 @@ const connectToDB = require("./src/config/database");
 const PORT = Number(process.env.PORT) || 3000;
 
 function validateEnvironment() {
-  const requiredVariables = ["MONGO_URI", "JWT_SECRET"];
+  const requiredVariables = ["MONGO_URI", "JWT_SECRET", "GOOGLE_GENAI_API_KEY"];
   const missingVariables = requiredVariables.filter(
     (variable) => !process.env[variable]?.trim()
   );

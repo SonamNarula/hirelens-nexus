@@ -749,7 +749,7 @@ Create a root `.env` file. Use [`.env.example`](./.env.example) as the template.
 MONGO_URI=mongodb://127.0.0.1:27017/hirelens
 JWT_SECRET=replace-with-a-long-random-secret
 GOOGLE_GENAI_API_KEY=replace-with-your-gemini-api-key
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-flash-lite-latest
 FRONTEND_URL=http://localhost:5173
 PORT=3000
 ```
@@ -779,7 +779,7 @@ Never commit `.env` to Git.
 | `MONGO_URI` | Yes | Mongoose connection |
 | `JWT_SECRET` | Yes for auth | JWT signing/verifying |
 | `GOOGLE_GENAI_API_KEY` | Yes for AI | Gemini service |
-| `GEMINI_MODEL` | No | Defaults to `gemini-2.0-flash` |
+| `GEMINI_MODEL` | No | Defaults to `gemini-flash-lite-latest` |
 | `FRONTEND_URL` | No | CORS; defaults to localhost frontend |
 | `PORT` | No | Defaults to `3000` |
 

@@ -45,7 +45,7 @@ JOB DESCRIPTION:
 ${jobDescription}`;
 
     const response = await getClient().models.generateContent({
-        model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+        model: process.env.GEMINI_MODEL || "gemini-flash-lite-latest",
         contents: prompt,
         config: {
             responseMimeType: "application/json",
@@ -67,7 +67,7 @@ ${jobDescription}`;
 
 async function generateResumePdf({ resume, selfDescription, jobDescription }) {
     const response = await getClient().models.generateContent({
-        model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+        model: process.env.GEMINI_MODEL || "gemini-flash-lite-latest",
         contents: `Create a concise, ATS-friendly HTML resume for this candidate and target role.
 Return only a JSON object with one "html" string property. Escape content safely and do not include scripts.
 
