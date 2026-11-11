@@ -19,6 +19,23 @@ const userModel = require("../models/user.model");
  */
 async function registerUserController(req, res) {
     // Registration logic will be implemented here
+    const{username, email, password} = req.body
+
+    if(!username || !email ||!password){
+        return res.status(400).json({
+            message: "Please provide username, email and password"
+        })
+    }
+
+    const isUserAlreadyExists = await userModel.findOne({
+        $or:[{username}, {email}]
+    })
+
+    if(isUserAlreadyExists){
+        return res.status(400).json({
+            message:"accoung already exists with this email address or username!!"
+        })
+    }
 }
 
 // Export the controller for use in authentication routes
