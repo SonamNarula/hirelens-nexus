@@ -4,7 +4,10 @@ import { BrowserRouter, Link, NavLink, Route, Routes, useNavigate, useParams } f
 import axios from "axios";
 import "./styles.css";
 
-const api = axios.create({ baseURL: "http://localhost:3000", withCredentials: true });
+const api = axios.create({
+  baseURL: `${window.location.protocol}//${window.location.hostname}:3000`,
+  withCredentials: true
+});
 
 const Icon = ({ name, size = 18 }) => {
   const paths = {
@@ -55,7 +58,9 @@ function AuthPage({ mode }) {
     try {
       if (isRegister) { await api.post("/api/auth/register", form); navigate("/dashboard"); }
       else { await api.post("/api/auth/login", { email: form.email, password: form.password }); navigate("/dashboard"); }
-    } catch (err) { setError(err.response?.data?.message || "Unable to connect. Start the backend and try again."); }
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to connect. Start the backend and try again.");
+    }
     finally { setLoading(false); }
   };
   return <div className="auth-page"><div className="auth-visual"><Logo /><div className="auth-quote"><span className="eyebrow">The preparation advantage</span><h1>Make your next<br /><em>yes</em> easier.</h1><p>One calm, considered workspace for the work between applying and arriving.</p><div className="auth-principle"><span className="feature-icon"><Icon name="spark" size={18} /></span><b>Context over noise</b><small>Your resume and target role stay at the center of every recommendation.</small></div></div><span className="auth-copyright">HireLens / 2026</span></div><div className="auth-form-side"><Link className="back-link" to="/"><span>←</span> Back to home</Link><div className="auth-form-wrap"><div className="eyebrow">{isRegister ? "Start here" : "Welcome back"}</div><h2>{isRegister ? "Create your workspace" : "Sign in to HireLens"}</h2><p className="muted">{isRegister ? "Your interview edge starts with context." : "Pick up where your preparation left off."}</p><form onSubmit={submit}>{isRegister && <label>Full name<input value={form.username} onChange={e => setForm({...form, username:e.target.value})} placeholder="Sonam Narula" /></label>}<label>Email address<input type="email" value={form.email} onChange={e => setForm({...form, email:e.target.value})} placeholder="you@company.com" /></label><label>Password<input type="password" value={form.password} onChange={e => setForm({...form, password:e.target.value})} placeholder="At least 8 characters" minLength="8" /></label>{error && <div className="form-error">{error}</div>}<button className="button button-primary submit-button" disabled={loading}>{loading ? "Working..." : isRegister ? <>Create account <Icon name="arrow" size={16} /></> : <>Sign in <Icon name="arrow" size={16} /></>}</button></form><p className="switch-auth">{isRegister ? "Already have an account?" : "New to HireLens?"} <Link to={isRegister ? "/login" : "/register"}>{isRegister ? "Sign in" : "Create an account"}</Link></p></div></div></div>;

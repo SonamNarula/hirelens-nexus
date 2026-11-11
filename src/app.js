@@ -5,11 +5,20 @@ const cors = require("cors");
 
 const app = express();
 
+const allowedOrigins = new Set([
+    process.env.FRONTEND_URL || "http://localhost:5173",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]);
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+        return callback(new Error("Origin is not allowed by CORS"));
+    },
     credentials: true
 }));
 
